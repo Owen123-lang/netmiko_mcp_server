@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional
 import sys
 import os
 
-# Add parent directory to path for imports
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from netmiko_connector import CiscoDeviceConnector
@@ -26,7 +26,7 @@ def get_running_config(filter_keyword: Optional[str] = None) -> Dict[str, Any]:
     """
     try:
         with CiscoDeviceConnector(DEVNET_DEVICE) as connector:
-            # Build command based on filter
+            
             if filter_keyword:
                 command = f"show running-config | include {filter_keyword}"
                 message = f"Successfully retrieved filtered config (keyword: {filter_keyword})"
@@ -69,7 +69,7 @@ def get_interface_config(interface_name: str) -> Dict[str, Any]:
     """
     try:
         with CiscoDeviceConnector(DEVNET_DEVICE) as connector:
-            # Get config for specific interface
+            
             command = f"show running-config interface {interface_name}"
             output = connector.execute_command(command)
             
@@ -135,11 +135,11 @@ def compare_configs() -> Dict[str, Any]:
     """
     try:
         with CiscoDeviceConnector(DEVNET_DEVICE) as connector:
-            # Check if there are unsaved changes
+            
             command = "show archive config differences system:running-config system:startup-config"
             output = connector.execute_command(command)
             
-            if output is not None:  # Output can be empty string if no differences
+            if output is not None:  
                 if output.strip() == "" or "No changes" in output:
                     return {
                         "success": True,
@@ -168,7 +168,7 @@ def compare_configs() -> Dict[str, Any]:
         }
 
 
-# Test function for standalone execution
+
 if __name__ == "__main__":
     print("Testing get_running_config tool...")
     print("=" * 50)
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     if result["success"]:
         print("✅ SUCCESS")
         print(f"\nCommand: {result['command']}")
-        print(f"\nConfig:\n{result['config'][:500]}...")  # Print first 500 chars
+        print(f"\nConfig:\n{result['config'][:500]}...") 
     else:
         print("❌ FAILED")
         print(f"Error: {result['error']}")

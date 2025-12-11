@@ -7,7 +7,7 @@ from typing import Dict, Any
 import sys
 import os
 
-# Add parent directory to path for imports
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from netmiko_connector import CiscoDeviceConnector
@@ -23,10 +23,10 @@ def get_device_status() -> Dict[str, Any]:
     """
     try:
         with CiscoDeviceConnector(DEVNET_DEVICE) as connector:
-            # Get version information
+            
             version_output = connector.execute_command("show version")
             
-            # Get hostname
+            
             hostname_output = connector.execute_command("show running-config | include hostname")
             
             if version_output:
@@ -59,7 +59,7 @@ def get_device_uptime() -> Dict[str, Any]:
     """
     try:
         with CiscoDeviceConnector(DEVNET_DEVICE) as connector:
-            # Get uptime from show version
+            
             output = connector.execute_command("show version | include uptime")
             
             if output:
@@ -91,10 +91,10 @@ def get_memory_cpu_usage() -> Dict[str, Any]:
     """
     try:
         with CiscoDeviceConnector(DEVNET_DEVICE) as connector:
-            # Get process CPU information
+           
             cpu_output = connector.execute_command("show processes cpu | include CPU")
             
-            # Get memory information
+          
             memory_output = connector.execute_command("show processes memory | include Processor")
             
             if cpu_output and memory_output:
@@ -118,7 +118,7 @@ def get_memory_cpu_usage() -> Dict[str, Any]:
         }
 
 
-# Test function for standalone execution
+
 if __name__ == "__main__":
     print("Testing get_device_status tool...")
     print("=" * 50)

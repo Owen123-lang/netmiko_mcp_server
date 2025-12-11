@@ -10,7 +10,7 @@ MCP (Model Context Protocol) Server untuk automasi jaringan Cisco menggunakan Ne
 - **Get Running Config**: Ambil konfigurasi yang sedang berjalan
 - **Interface Details**: Ambil detail spesifik untuk interface tertentu
 - **Resource Monitoring**: Monitor CPU dan memory usage
-- **Natural Language Interface**: Komunikasi dengan router menggunakan bahasa natural melalui Claude Desktop
+- **sambungin ke claude desktop**: Komunikasi dengan router menggunakan bahasa natural melalui Claude Desktop
 
 ## harus punya....
 
@@ -94,7 +94,7 @@ DEVNET_DEVICE = {
 
 ### Testing Individual Tools
 
-Setiap tool bisa ditest secara standalone:
+Setiap tool bisa ditest secara sendiri/individu:
 
 ```bash
 # Test get interfaces
@@ -120,7 +120,6 @@ Server akan berjalan dan menunggu koneksi dari MCP client (seperti Claude Deskto
 ### 1. `get_interfaces`
 Mendapatkan daftar semua interface dari device.
 
-**Output**: `show ip interface brief`
 
 ### 2. `get_interface_detail`
 Mendapatkan detail spesifik untuk satu interface.
@@ -181,28 +180,50 @@ python test_connection.py
 
 ### Test 1: Connection Test 
 
+command: `python test_connection.py`
+
+untuk test koneksi dasar ke cisco device, verifikasi kredensial, dan informasi umum seperti version, hostname, dan interfaces.
+
+output:
+
+
+
 
 
 ### Test 2: Get Interfaces 
+
+command: `python tools/get_interfaces.py`
+
+
+deskripsi: Test tool untuk mendapatkan daftar semua interface dan statusnya (output dari show ip interface brief).
 
 
 
 ### Test 3: Get Device Status 
 
+command: `python tools/get_device_status.py`
 
+deskripsi:  Test tool untuk mendapatkan informasi device (IOS version, hostname, uptime, CPU/memory).
 
 ### Test 4: Get Running Config
 
+command: `python tools/get_running_config.py`
+
+deskripsi:Test tool untuk mendapatkan running configuration. Script ini akan menjalankan 2 test:
+
+Test 1: Filtered config dengan keyword "interface"
+Test 2: Config untuk specific interface (GigabitEthernet1) 
 
 **Test 4a: Filtered Config (interface)**
+command: `python test_connection.py`
 
-**Test 4b: Interface Config (GigabitEthernet1)**
 
 
-### Test 5: MCP Server - ✅ SUCCESS
+### Test 5: MCP Server  
 
 **Command**: `python mcp_server.py`
 
+deskripsi: Menjalankan MCP server yang akan menunggu koneksi dari Claude Desktop.
 
 ## Setting buat Claude Desktop
 
@@ -253,3 +274,7 @@ What is the hostname and version of the Cisco device?
 
 Claude akan menggunakan tools MCP untuk mengeksekusi perintah di router.
 
+
+<a href="https://ibb.co.com/HDdLrKVx"><img src="https://i.ibb.co.com/HDdLrKVx/screenshot-claude2.png" alt="screenshot-claude2" border="0"></a> 
+
+<a href="https://ibb.co.com/DsHtBbc"><img src="https://i.ibb.co.com/DsHtBbc/screenshot-claude1.png" alt="screenshot-claude1" border="0"></a>

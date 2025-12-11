@@ -7,7 +7,7 @@ from typing import Dict, Any
 import sys
 import os
 
-# Add parent directory to path for imports
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from netmiko_connector import CiscoDeviceConnector
@@ -23,7 +23,7 @@ def get_interfaces() -> Dict[str, Any]:
     """
     try:
         with CiscoDeviceConnector(DEVNET_DEVICE) as connector:
-            # Execute 'show ip interface brief' command
+            
             output = connector.execute_command("show ip interface brief")
             
             if output:
@@ -58,7 +58,7 @@ def get_interface_detail(interface_name: str) -> Dict[str, Any]:
     """
     try:
         with CiscoDeviceConnector(DEVNET_DEVICE) as connector:
-            # Execute detailed show command for specific interface
+            
             command = f"show interface {interface_name}"
             output = connector.execute_command(command)
             
@@ -83,7 +83,6 @@ def get_interface_detail(interface_name: str) -> Dict[str, Any]:
         }
 
 
-# Test function for standalone execution
 if __name__ == "__main__":
     print("Testing get_interfaces tool...")
     print("=" * 50)
