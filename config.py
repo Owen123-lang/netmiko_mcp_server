@@ -6,7 +6,7 @@ Supports Zero-Touch Configuration with 2 routers (R1 and R2)
 # Router 1 Configuration (Connected to Cloud/Wi-Fi)
 ROUTER1_DEVICE = {
     "device_type": "cisco_ios",
-    "host": "172.16.10.200",  # R1 IP on Wi-Fi network
+    "host": "192.168.242.129",  # R1 IP on Wi-Fi network
     "port": 22,
     "username": "admin",
     "password": "admin123",
@@ -15,9 +15,11 @@ ROUTER1_DEVICE = {
 }
 
 # Router 2 Configuration (Internal network)
+# R2 is accessible via direct routing through R1 (10.1.1.2)
+# No jumphost needed - Windows has static route to 10.1.1.0/24 via R1
 ROUTER2_DEVICE = {
     "device_type": "cisco_ios",
-    "host": "10.1.1.2",  # R2 IP on internal network (reachable via R1)
+    "host": "10.1.1.2",  # R2 internal IP (directly reachable via routing)
     "port": 22,
     "username": "admin",
     "password": "admin123",

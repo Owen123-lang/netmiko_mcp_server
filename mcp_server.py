@@ -20,6 +20,13 @@ from tools.validate_config import (
     validate_interface_config, validate_connectivity,
     validate_ospf_adjacency, validate_routing_table, comprehensive_validation
 )
+from tools.configure_basic import (
+    get_hostname, change_hostname, configure_interface_description,
+    create_loopback, delete_loopback, set_banner, remove_banner
+)
+from tools.bootstrap_router import bootstrap_router_ssh, check_router_ssh_status
+from advanced_tools_registry import get_advanced_tool_definitions
+from advanced_tools_handlers import handle_advanced_tools
 
 
 logging.basicConfig(
@@ -348,6 +355,205 @@ async def list_tools() -> list[Tool]:
                 "required": ["device_name"]
             }
         ),
+        # Basic Configuration Tools (Simple Demos)
+        Tool(
+            name="get_hostname",
+            description="Get current hostname from device (Context-Aware - READ state)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "device_name": {
+                        "type": "string",
+                        "description": "Router name (R1 or R2)",
+                        "enum": ["R1", "R2"]
+                    }
+                },
+                "required": ["device_name"]
+            }
+        ),
+        Tool(
+            name="change_hostname",
+            description="Change device hostname with safety check (POST - WRITE config)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "device_name": {
+                        "type": "string",
+                        "description": "Router name (R1 or R2)",
+                        "enum": ["R1", "R2"]
+                    },
+                    "new_hostname": {
+                        "type": "string",
+                        "description": "New hostname to set"
+                    }
+                },
+                "required": ["device_name", "new_hostname"]
+            }
+        ),
+        Tool(
+            name="configure_interface_description",
+            description="Add or change description on interface (POST with context check)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "device_name": {
+                        "type": "string",
+                        "description": "Router name (R1 or R2)",
+                        "enum": ["R1", "R2"]
+                    },
+                    "interface_name": {
+                        "type": "string",
+                        "description": "Interface name (e.g., 'FastEthernet0/1', 'Loopback0')"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description text to set"
+                    }
+                },
+                "required": ["device_name", "interface_name", "description"]
+            }
+        ),
+        Tool(
+            name="create_loopback",
+            description="Create loopback interface with IP address (POST with duplicate prevention)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "device_name": {
+                        "type": "string",
+                        "description": "Router name (R1 or R2)",
+                        "enum": ["R1", "R2"]
+                    },
+                    "loopback_number": {
+                        "type": "integer",
+                        "description": "Loopback interface number (0-2147483647)"
+                    },
+                    "ip_address": {
+                        "type": "string",
+                        "description": "IP address for loopback (e.g., '1.1.1.1')"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Optional description for loopback"
+                    }
+                },
+                "required": ["device_name", "loopback_number", "ip_address"]
+            }
+        ),
+        Tool(
+            name="delete_loopback",
+            description="Delete loopback interface (POST with existence check)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "device_name": {
+                        "type": "string",
+                        "description": "Router name (R1 or R2)",
+                        "enum": ["R1", "R2"]
+                    },
+                    "loopback_number": {
+                        "type": "integer",
+                        "description": "Loopback interface number to delete"
+                    }
+                },
+                "required": ["device_name", "loopback_number"]
+            }
+        ),
+        Tool(
+            name="set_banner",
+            description="Configure banner message on router (motd, login, or exec type)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "device_name": {
+                        "type": "string",
+                        "description": "Router name (R1 or R2)",
+                        "enum": ["R1", "R2"]
+                    },
+                    "banner_text": {
+                        "type": "string",
+                        "description": "Banner message text (multi-line supported)"
+                    },
+                    "banner_type": {
+                        "type": "string",
+                        "description": "Banner type: motd (message-of-the-day), login, or exec",
+                        "enum": ["motd", "login", "exec"],
+                        "default": "motd"
+                    }
+                },
+                "required": ["device_name", "banner_text"]
+            }
+        ),
+        Tool(
+            name="remove_banner",
+            description="Remove banner configuration from router",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "device_name": {
+                        "type": "string",
+                        "description": "Router name (R1 or R2)",
+                        "enum": ["R1", "R2"]
+                    },
+                    "banner_type": {
+                        "type": "string",
+                        "description": "Banner type to remove: motd, login, or exec",
+                        "enum": ["motd", "login", "exec"],
+                        "default": "motd"
+                    }
+                },
+                "required": ["device_name"]
+            }
+        ),
+        # Bootstrap Tools (Advanced Zero-Touch)
+        Tool(
+            name="check_ssh_status",
+            description="Check if router has SSH enabled and accessible (Bootstrap diagnostic)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "device_name": {
+                        "type": "string",
+                        "description": "Router name (R1 or R2)",
+                        "enum": ["R1", "R2"]
+                    }
+                },
+                "required": ["device_name"]
+            }
+        ),
+        Tool(
+            name="bootstrap_router",
+            description="Auto-configure SSH on a router that doesn't have it yet (True Zero-Touch Bootstrap). Uses jumphost to telnet and configure target router.",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "jumphost_device": {
+                        "type": "string",
+                        "description": "Router to use as jumphost (default: R1)",
+                        "enum": ["R1", "R2"]
+                    },
+                    "target_ip": {
+                        "type": "string",
+                        "description": "IP address of target router to bootstrap"
+                    },
+                    "target_hostname": {
+                        "type": "string",
+                        "description": "Desired hostname for target router"
+                    },
+                    "username": {
+                        "type": "string",
+                        "description": "Username to create (default: admin)"
+                    },
+                    "password": {
+                        "type": "string",
+                        "description": "Password for user (default: admin123)"
+                    }
+                },
+                "required": ["target_ip", "target_hostname"]
+            }
+        ),
+        # Add advanced tools
+        *get_advanced_tool_definitions(),
     ]
 
 
@@ -490,9 +696,100 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                 result = {"success": False, "error": "device_name is required"}
             else:
                 result = comprehensive_validation(device_name)
+        
+        # Basic configuration tools
+        elif name == "get_hostname":
+            device_name = arguments.get("device_name")
             
+            if not device_name:
+                result = {"success": False, "error": "device_name is required"}
+            else:
+                result = get_hostname(device_name)
+        
+        elif name == "change_hostname":
+            device_name = arguments.get("device_name")
+            new_hostname = arguments.get("new_hostname")
+            
+            if not all([device_name, new_hostname]):
+                result = {"success": False, "error": "Missing required parameters"}
+            else:
+                result = change_hostname(device_name, new_hostname)
+        
+        elif name == "configure_interface_description":
+            device_name = arguments.get("device_name")
+            interface_name = arguments.get("interface_name")
+            description = arguments.get("description")
+            
+            if not all([device_name, interface_name, description]):
+                result = {"success": False, "error": "Missing required parameters"}
+            else:
+                result = configure_interface_description(device_name, interface_name, description)
+        
+        elif name == "create_loopback":
+            device_name = arguments.get("device_name")
+            loopback_number = arguments.get("loopback_number")
+            ip_address = arguments.get("ip_address")
+            description = arguments.get("description")
+            
+            if not all([device_name, loopback_number is not None, ip_address]):
+                result = {"success": False, "error": "Missing required parameters"}
+            else:
+                result = create_loopback(device_name, loopback_number, ip_address, description)
+        
+        elif name == "delete_loopback":
+            device_name = arguments.get("device_name")
+            loopback_number = arguments.get("loopback_number")
+            
+            if not all([device_name, loopback_number is not None]):
+                result = {"success": False, "error": "Missing required parameters"}
+            else:
+                result = delete_loopback(device_name, loopback_number)
+        
+        elif name == "set_banner":
+            device_name = arguments.get("device_name")
+            banner_text = arguments.get("banner_text")
+            banner_type = arguments.get("banner_type", "motd")
+            
+            if not all([device_name, banner_text]):
+                result = {"success": False, "error": "Missing required parameters"}
+            else:
+                result = set_banner(device_name, banner_text, banner_type)
+        
+        elif name == "remove_banner":
+            device_name = arguments.get("device_name")
+            banner_type = arguments.get("banner_type", "motd")
+            
+            if not device_name:
+                result = {"success": False, "error": "device_name is required"}
+            else:
+                result = remove_banner(device_name, banner_type)
+        
+        # Bootstrap tools
+        elif name == "check_ssh_status":
+            device_name = arguments.get("device_name")
+            
+            if not device_name:
+                result = {"success": False, "error": "device_name is required"}
+            else:
+                result = check_router_ssh_status(device_name)
+        
+        elif name == "bootstrap_router":
+            jumphost_device = arguments.get("jumphost_device", "R1")
+            target_ip = arguments.get("target_ip")
+            target_hostname = arguments.get("target_hostname")
+            username = arguments.get("username", "admin")
+            password = arguments.get("password", "admin123")
+            
+            if not all([target_ip, target_hostname]):
+                result = {"success": False, "error": "target_ip and target_hostname are required"}
+            else:
+                result = bootstrap_router_ssh(jumphost_device, target_ip, target_hostname, username, password)
+            
+        # Try advanced tools handler
         else:
-            result = {"success": False, "error": f"Unknown tool: {name}"}
+            result = handle_advanced_tools(name, arguments)
+            if result is None:
+                result = {"success": False, "error": f"Unknown tool: {name}"}
         
         
         if result.get("success"):
