@@ -37,13 +37,14 @@ DEVICES = {
 DEVNET_DEVICE = ROUTER1_DEVICE
 
 # Network Configuration for Zero-Touch Setup
+# Updated topology: R1-R2 with PC1 and PC2 networks
 NETWORK_CONFIG = {
     "R1": {
         "hostname": "NetAutoR1",
         "interfaces": {
             "FastEthernet0/0": {
-                "description": "Link to Cloud (Wi-Fi)",
-                "ip_address": "172.16.10.250",
+                "description": "Link to Cloud (Management)",
+                "ip_address": "192.168.242.129",
                 "subnet_mask": "255.255.255.0",
             },
             "FastEthernet0/1": {
@@ -51,11 +52,17 @@ NETWORK_CONFIG = {
                 "ip_address": "10.1.1.1",
                 "subnet_mask": "255.255.255.0",
             },
+            "FastEthernet1/0": {
+                "description": "LAN to PC1",
+                "ip_address": "192.168.10.1",
+                "subnet_mask": "255.255.255.0",
+            },
         },
         "ospf": {
             "process_id": 1,
             "networks": [
-                {"network": "10.0.0.0", "wildcard": "0.255.255.255", "area": 0},
+                {"network": "10.1.1.0", "wildcard": "0.0.0.255", "area": 0},
+                {"network": "192.168.10.0", "wildcard": "0.0.0.255", "area": 0},
             ],
             "default_information": "originate",
         },
@@ -68,11 +75,17 @@ NETWORK_CONFIG = {
                 "ip_address": "10.1.1.2",
                 "subnet_mask": "255.255.255.0",
             },
+            "FastEthernet0/1": {
+                "description": "LAN to PC2",
+                "ip_address": "192.168.20.1",
+                "subnet_mask": "255.255.255.0",
+            },
         },
         "ospf": {
             "process_id": 1,
             "networks": [
-                {"network": "10.0.0.0", "wildcard": "0.255.255.255", "area": 0},
+                {"network": "10.1.1.0", "wildcard": "0.0.0.255", "area": 0},
+                {"network": "192.168.20.0", "wildcard": "0.0.0.255", "area": 0},
             ],
         },
     },
