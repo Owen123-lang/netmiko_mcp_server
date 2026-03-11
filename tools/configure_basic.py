@@ -342,7 +342,7 @@ def delete_loopback(device_name: str, loopback_number: int) -> dict:
 
 def set_banner(device_name: str, banner_text: str, banner_type: str = "motd") -> dict:
     """
-    Configure login banner on device
+    Configure login banner on device using proper delimiter handling
     
     Args:
         device_name: Router name (R1 or R2)
@@ -377,35 +377,65 @@ def set_banner(device_name: str, banner_text: str, banner_type: str = "motd") ->
                 f"show running-config | section banner {banner_type}"
             )
             
-            # Configure banner
-            # Note: We use # as delimiter and ensure banner text doesn't contain #
-            if '#' in banner_text:
+            # Find a delimiter that is NOT in the banner text
+            # Try common delimiters in order
+            possible_delimiters = ['#', '^', '@', '%', '!', '~', '*', '=', '+']
+            delimiter = None
+            
+            for delim in possible_delimiters:
+                if delim not in banner_text:
+                    delimiter = delim
+                    break
+            
+            if delimiter is None:
                 return {
                     "success": False,
-                    "error": "Banner text cannot contain '#' character (used as delimiter)"
+                    "error": f"Banner text contains all common delimiters. Please use simpler text."
                 }
             
-            commands = [
-                f"banner {banner_type} #",
-                banner_text,
-                "#"
-            ]
-            
-            output = connector.execute_config_commands(commands)
+            # Configure banner using send_command_timing for interactive input
+            # This is the correct way to configure banners in Cisco
+            try:
+                # Enter config mode
+                connector.connection.config_mode()
+                
+                # Send banner command with delimiter
+                banner_command = f"banner {banner_type} {delimiter}"
+                connector.connection.send_command_timing(banner_command, delay_factor=1)
+                
+                # Send banner text
+                connector.connection.send_command_timing(banner_text, delay_factor=1)
+                
+                # Send closing delimiter
+                output = connector.connection.send_command_timing(delimiter, delay_factor=1)
+                
+                # Exit config mode
+                connector.connection.exit_config_mode()
+                
+                logger.info(f"Banner command executed with delimiter '{delimiter}'")
+                
+            except Exception as banner_error:
+                logger.error(f"Banner configuration failed: {str(banner_error)}")
+                return {
+                    "success": False,
+                    "error": f"Failed to configure banner: {str(banner_error)}"
+                }
             
             # Verify banner was set
             verify_banner = connector.execute_command(
                 f"show running-config | section banner {banner_type}"
             )
             
-            success = (banner_text in verify_banner)
+            # Check if banner text appears in config (may be slightly reformatted)
+            success = (banner_text.strip() in verify_banner or f"banner {banner_type}" in verify_banner)
             
             return {
                 "success": success,
                 "device": device_name,
-                "message": f"Banner {banner_type} configured successfully",
+                "message": f"Banner {banner_type} configured successfully with delimiter '{delimiter}'",
                 "banner_type": banner_type,
                 "banner_text": banner_text,
+                "delimiter_used": delimiter,
                 "before_banner": current_banner.strip() if current_banner.strip() else "(none)",
                 "after_banner": verify_banner.strip(),
                 "config_output": output
